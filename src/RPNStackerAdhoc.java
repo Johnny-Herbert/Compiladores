@@ -2,19 +2,25 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class RPNStackerAdhoc {
 
 	public static void main(String[] args) throws FileNotFoundException  {
 		// TODO Auto-generated method stub
-		Stack pilha = new Stack(); 
+		Stack<Double> pilha = new Stack(); 
 		double num1 = 0, num2 = 0, result = 0;
 		String caracter = "-";
-		File file = new File("files/Calc1.stk");
+		File file = new File("files/Calc4.stk");
 		LinkedList<Token> tokens = null;
+		HashMap<String, String> variables = new HashMap<String, String>();
+		variables.put("x", "4");
+		variables.put("y", "9");
+			
+		
 		try {
-			tokens = scanning(file);
+			tokens = scanning(file, variables);
 			for (int i = 0; i < tokens.size(); i++) {
 				Token token = tokens.get(i);
 				switch (token.lexeme) {
@@ -47,7 +53,12 @@ public class RPNStackerAdhoc {
 					break;
 				}
 				default:
-					pilha.push(Double.parseDouble(token.lexeme));
+					if(isVariable(token.lexeme, variables)) {
+						pilha.push(Double.parseDouble(variables.get(token.lexeme)));
+					}
+					else {
+						pilha.push(Double.parseDouble(token.lexeme));
+					}	
 					break;
 				}
 			}
@@ -59,12 +70,12 @@ public class RPNStackerAdhoc {
 		
 	}
 
-	public static LinkedList<Token> scanning(File file) throws Exception {
+	public static LinkedList<Token> scanning(File file, HashMap<String, String> variables) throws Exception {
 		String caracter = "-";
 		Scanner in = new Scanner(file);
 		LinkedList<Token> tokens = new LinkedList<Token>();
-		boolean erro = false;
-		while (in.hasNext() && !erro) {
+
+		while (in.hasNext()) {
 			TokenType tokenType = null;
 			caracter = in.nextLine();
 			switch (caracter) {
@@ -90,7 +101,13 @@ public class RPNStackerAdhoc {
 					tokenType = TokenType.NUM;
 				}
 				else {
-					throw new Exception("Error: Unexpected character: " + caracter);
+					
+					if(!isVariable(caracter, variables)) {						
+						throw new Exception("Error: Unexpected character: " + caracter);
+					}
+					else {
+						tokenType = TokenType.ID;
+					}
 				}
 				break;
 			}
@@ -101,6 +118,15 @@ public class RPNStackerAdhoc {
 		in.close();
 		return tokens;
 
+	}
+	
+	public static boolean isVariable(String caracter, HashMap<String, String> variables) {
+		for (String variable : variables.keySet()) {
+			  if(variable.equals(caracter)) {
+				  return true;
+			  }
+		}
+		return false;
 	}
 
 }
